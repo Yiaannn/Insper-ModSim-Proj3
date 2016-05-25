@@ -8,6 +8,38 @@ Created on Wed May 18 17:13:14 2016
 import pygame
 import random
 import color
+import math
+
+
+'''
+equaçoes de colisão(2D):
+Vf * cos{angulo final} *(m1 + m2) = m1 * v1 + m2 * v2 * cos{angulo entre obj1 e obj2}
+Vf * sin{angulo final} *(m1 + m2) = m2 * v2 *sin{angulo entre obj1 e obj2}
+
+
+Algebra:
+Vf  = m1 * v1 + m2 * v2 * cos{angulo entre obj1 e obj2} / (cos{angulo final} *(m1 + m2))
+
+sin{angulo final} = m2 * v2 *sin{angulo entre obj1 e obj2} / (m1 * v1 + m2 * v2 * cos{angulo entre obj1 e obj2} / (cos{angulo final} *(m1 + m2)) *(m1 + m2)) 
+
+
+'''
+
+def colisão_2D(orbi_1,orbi_2,angulo):
+    m1 = orbi_1.mass
+    v1 =(orbi_1.speed.x**2 + orbi_1.speed.y**2) **(1/2)
+    
+    m2 = orbi_2.mass
+    v2 =(orbi_2.speed.x**2 + orbi_2.speed.y**2) **(1/2)
+    
+    
+        
+    angulo_final_SemSin = m2 * v2 * math.sin(angulo)/ (m1 * v1 + m2 * v2 * math.cos(angulo)/ math.cos(angulo) * (m1 + m2)) *(m1 + m2) 
+    angulo_final = math.sin(angulo_final_SemSin)
+    
+    Vf = m1 * v1 + m2 * v2 * math.cos(angulo) / (math.cos(angulo_final) *(m1 + m2))
+
+    return Vf,angulo_final
 
 GRAVCONST= 6.67*(10**(-11)) #em Newton*(Metro quadrado)/(quilos quadrados) 
 SCALE= 3*(10**9) #em quilômetros por pixel
@@ -50,16 +82,16 @@ class StarDome():
 
     def __init__(self):
         #generate stars
-        starnum= 60
+        starnum= 92000
         self.star= []
         
         for num in range(starnum):
             self.star.append( [(random.randint(0, WINDOW_HEIGHT-1), random.randint(0, WINDOW_WIDTH-1)), random.randint(1, 4) ])
     
     def draw(self):
-        canvas.fill(color.BLACK)
+        canvas.fill(color.WHITE)
         for stup in self.star:
-            draw.circle(canvas, color.WHITE, stup[0], stup[1])
+            draw.circle(canvas, color.BLACK, stup[0], stup[1])
             
     def update(self):
         None
@@ -128,7 +160,7 @@ class OrbitalBody:
         self.position.y+= self.speed.y*TIME_RESOLUTION
         self.position.z+= self.speed.z*TIME_RESOLUTION
         
-    def update_speed(self):        
+    def update_speed(self):
         
         for celestial_body in self.celestial_neighbor:
             
@@ -159,7 +191,7 @@ orbital.add_neighbor(center)
 dome= StarDome()
 #--MAIN LOOP--
 while not event.quit:
-    sleep( 20)
+    sleep(20)
     
     event.update()
     
