@@ -7,34 +7,44 @@ Created on Wed May 18 17:13:14 2016
 
 import pygame
 import random
+import color
 
 GRAVCONST= 6.67*(10**(-11)) #em Newton*(Metro quadrado)/(quilos quadrados) 
-SCALE= 10**11 #em quilômetros por pixel
-TIME_RESOLUTION= 1 #intervalo de tempo, em segundos, em que cada ponto é calculado
+SCALE= 3*(10**9) #em quilômetros por pixel
+TIME_RESOLUTION= 3600*24*1 #intervalo de tempo, em segundos, em que cada ponto é calculado
 WINDOW_HEIGHT= 800
 WINDOW_WIDTH= 600
 
 display= pygame.display
 draw= pygame.draw
-event= pygame.event
 current_time= pygame.time.get_ticks
 sleep= pygame.time.wait
 canvas= pygame.display.set_mode((WINDOW_HEIGHT, WINDOW_WIDTH))
-BLACK= (0, 0, 0)
-WHITE= (255, 255, 255)
-BLUE= (0, 0, 255)
 run= True
     
-def crunch_pygame_events():
-    event.pump()
-    list= event.get()
-    run= True
+class EventHandler():
     
-    for stuff in list:
-        if stuff.type == pygame.QUIT:
-            run= False
-            
-    return run
+    def __init__(self):
+        self.buffer= []
+        self.quit= False
+    
+    def update(self):
+        pygame.event.pump()
+        
+        self.buffer= pygame.event.get()
+        ORDER= {
+            pygame.QUIT: self.update_quit}
+        
+        for stuff in self.buffer:
+            print(stuff)
+            ORDER.get(stuff.type, self.update_nothing)()
+    
+    def update_quit(self):
+        self.quit= True
+        
+    def update_nothing(self):
+        pass
+        
     
 class StarDome():
 
@@ -47,9 +57,9 @@ class StarDome():
             self.star.append( [(random.randint(0, WINDOW_HEIGHT-1), random.randint(0, WINDOW_WIDTH-1)), random.randint(1, 4) ])
     
     def draw(self):
-        canvas.fill(BLACK)
+        canvas.fill(color.BLACK)
         for stup in self.star:
-            draw.circle(canvas, WHITE, stup[0], stup[1])
+            draw.circle(canvas, color.WHITE, stup[0], stup[1])
             
     def update(self):
         None
@@ -60,6 +70,9 @@ class Cardinal:
         self.x= x
         self.y= y
         self.z= z
+        
+    def vectorize(self):
+        return (self.x**2 + self.y**2 + self.z**2)**(1/2)
     
 class CenterBody:
     
@@ -76,12 +89,15 @@ class CenterBody:
         
         self.celestial_neighbor= []
         
+        self.tick= 0
+        
     def draw(self):
-        #draw.circle(canvas, BLUE, (WINDOW_HEIGHT//2, WINDOW_WIDTH//2), int(self.radius/SCALE))
-        draw.circle(canvas, BLUE, (WINDOW_HEIGHT//2, WINDOW_WIDTH//2), 20)
+        draw.circle(canvas, color.BLUE, (WINDOW_HEIGHT//2, WINDOW_WIDTH//2), int(self.radius/SCALE))
+        #draw.circle(canvas, color.BLUE, (WINDOW_HEIGHT//2, WINDOW_WIDTH//2), 20)
         
     def update(self):
-        None
+        self.tick+= 1
+        self.tick%= 1024
     
 class OrbitalBody:
     
@@ -96,10 +112,15 @@ class OrbitalBody:
         self.radius= radius
         
         self.celestial_neighbor= []
+        
+        self.tick= 0
     
     def update(self):
         self.update_position()
         self.update_speed()
+        
+        self.tick+= 1
+        self.tick%= 1024
     
     def update_position(self):
         
@@ -111,33 +132,25 @@ class OrbitalBody:
         
         for celestial_body in self.celestial_neighbor:
             
-            partial= (GRAVCONST*celestial_body.mass)
+            relative_constant= self.position.vectorize()**3/(GRAVCONST*celestial_body.mass)
             
-            if self.position.x > 0: 
-                self.speed.x-= partial/(self.position.x**2)*TIME_RESOLUTION
-            elif self.position.x < 0:
-                self.speed.x+= partial/(self.position.x**2)*TIME_RESOLUTION
-                
-            if self.position.y > 0:
-                self.speed.y-= partial/(self.position.y**2)*TIME_RESOLUTION
-            elif self.position.y < 0:
-                self.position.y+= partial/(self.position.y**2)*TIME_RESOLUTION
-            #self.speed_z= partial/(self.distance_z**2)*time_lapse
-                
-            print ("DEBUG: "+str(partial/(self.position.y**2)*TIME_RESOLUTION))
-            #print ("DEBUG: "+str(self.speed_y))
+            self.speed.x-= ( self.position.x/relative_constant )*TIME_RESOLUTION
+            self.speed.y-= ( self.position.y/relative_constant )*TIME_RESOLUTION
+            self.speed.z-= ( self.position.z/relative_constant )*TIME_RESOLUTION
         
     def add_neighbor(self, celestial_body):
         
         self.celestial_neighbor.append(celestial_body)
         
     def draw(self):
-        #draw.circle(canvas, WHITE, (int(WINDOW_HEIGHT//2+self.distance_x/SCALE), int(WINDOW_WIDTH//2+self.distance_y/SCALE)), int(self.radius/SCALE))
-        draw.circle(canvas, WHITE, (int(WINDOW_HEIGHT//2+self.position.x/SCALE), int(WINDOW_WIDTH//2+self.position.y/SCALE)), 20)
-        print(self.position.x)
-        print(self.position.y)
-        print("~~~")
+        #draw pulse
+        draw.circle(canvas, color.make_transparent(color.BLACK, color.WHITE, 0.5 + (self.tick%64)/128), (int(WINDOW_HEIGHT//2+self.position.x/SCALE), int(WINDOW_WIDTH//2+self.position.y/SCALE)), int(self.radius/SCALE)+int( ((self.tick%64)/2)**0.7 ))
+        #draw itself
+        draw.circle(canvas, color.WHITE, (int(WINDOW_HEIGHT//2+self.position.x/SCALE), int(WINDOW_WIDTH//2+self.position.y/SCALE)), int(self.radius/SCALE))
+        #draw.circle(canvas, color.WHITE, (int(WINDOW_HEIGHT//2+self.position.x/SCALE), int(WINDOW_WIDTH//2+self.position.y/SCALE)), 20)
 #
+
+event= EventHandler()
 
 center= CenterBody(1.98855*(10**30), 695700*(10**3)) #dados referentes ao Sol
 #orbital= OrbitalBody(405400*(10**3), 959.583333333333333333333, 7.342* (10**22)) #dados referentes à lua
@@ -145,10 +158,10 @@ orbital= OrbitalBody(816.04*(10**9), 12.44*(10**3), 1.8986*(10**27), 69911*(10**
 orbital.add_neighbor(center)
 dome= StarDome()
 #--MAIN LOOP--
-while run:
-    sleep( 100)
+while not event.quit:
+    sleep( 20)
     
-    run= crunch_pygame_events()
+    event.update()
     
     #update things
     dome.update()
