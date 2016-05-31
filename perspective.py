@@ -11,17 +11,18 @@ WINDOW_WIDTH= 600
 
 class Perspective():
     
-    def __init__(self):
-        
-        self.lock= None
-        self.position= Cardinal(0, 0, 0)
-        self.scale= 3*(10**9) #em quilômetros por pixel
-        
-    def window(self, celestial_body):
-        x= (WINDOW_WIDTH//2) + (celestial_body.position.x - self.position.x)/self.scale
-        y= (WINDOW_HEIGHT//2) - (celestial_body.position.y - self.position.y)/self.scale
-        
-        return x, y
-    
-    def perceived_size(self, celestial_body):
-        pass
+	def __init__(self):
+
+		self.lock= None
+		self.position= Cardinal(0, 0, 0)
+		self.scale= 3*(10**7) #em quilômetros por pixel
+
+	def window(self, celestial_body):
+		x= (WINDOW_WIDTH//2) + (celestial_body.position.x - self.position.x)//self.scale
+		y= (WINDOW_HEIGHT//2) - (celestial_body.position.y - self.position.y)//self.scale
+
+		return x, y
+
+	def perceived_size(self, celestial_body):
+		radius= celestial_body.radius//self.scale
+		return radius

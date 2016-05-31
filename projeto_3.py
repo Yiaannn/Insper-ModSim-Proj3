@@ -12,9 +12,8 @@ from perspective import Perspective
 from cardinal import Cardinal
 import math
 
-GRAVCONST= 6.67*(10**(-11)) #em Newton*(Metro quadrado)/(quilos quadrados)
-
-TIME_RESOLUTION= 3600*24*1 #intervalo de tempo, em segundos, em que cada ponto é calculado
+TIME_RESOLUTION= 1*60*60#*24*1 #intervalo de tempo, em segundos, em que cada ponto é calculado
+GRAVCONST= 6.67*(10**(-11))*(TIME_RESOLUTION**2) #em Newton*(Metro quadrado)/(quilos quadrados)
 WINDOW_HEIGHT= 800
 WINDOW_WIDTH= 600
 
@@ -63,165 +62,174 @@ def distancia(orbi_a,orbi_b):
     
 class EventHandler():
     
-    def __init__(self):
-        self.buffer= []
-        self.quit= False
-    
-    def update(self):
-        pygame.event.pump()
-        
-        self.buffer= pygame.event.get()
-        ORDER= {
-            pygame.MOUSEBUTTONDOWN: self.update_mouse,
-            pygame.QUIT: self.update_quit}
-        
-        for stuff in self.buffer:
-            if stuff.type in ORDER:
-               ORDER[stuff.type](stuff)
-    
-    def update_mouse(self, stuff):
-        global SCALE
-        
-        if stuff.button == 4:
-            SCALE**=(1/1.001)
-        elif stuff.button == 5:
-            SCALE**=(1.001)
-    
-    def update_quit(self, stuff):
-        self.quit= True
+	def __init__(self, perspective):
+		self.perspective= perspective
+		self.buffer= []
+		self.quit= False
+
+	def update(self):
+		pygame.event.pump()
+		
+		self.buffer= pygame.event.get()
+		ORDER= {
+			pygame.MOUSEBUTTONDOWN: self.update_mouse,
+			pygame.QUIT: self.update_quit}
+		
+		for stuff in self.buffer:
+			if stuff.type in ORDER:
+			   ORDER[stuff.type](stuff)
+
+	def update_mouse(self, stuff):
+
+		if stuff.button == 4:
+			perspective.scale= int(perspective.scale**(1/1.01))
+		elif stuff.button == 5:
+			perspective.scale= int(perspective.scale**(1.01/1))
+
+	def update_quit(self, stuff):
+		self.quit= True
 
 class CelestialCluster():
-    #"KEY": (distance, speed, mass, radius)
-    EARTHSYS= lambda: (
-        [CelestialBody( 0, 0, 5.97237*(10**24), 6.371*(10**3))], #EARTH
-        [CelestialBody(405400*(10**3) , 959.583333333333333333333, 7.342* (10**22), 1737.1*(10**3)) ]) #MOON
-    
-    SOLARSYS= lambda: (
-        [CelestialBody(0, 0, 1.98855*(10**30), 695700*(10**3))], #SUN
-        [CelestialBody(816.04*(10**9), 12.44*(10**3), 1.8986*(10**27), 69911*(10**3)) ]) #JUPITER        
-    
-    def __init__(self):
-        #self.cluster= []
-        
-        self.cluster, orbital_list= CelestialCluster.EARTHSYS()
-        
-        for orbital in orbital_list:
-            self.include(orbital)
-            
-    def update(self):
-        for celestial_body in self.cluster:
-            celestial_body.update()
-        print(self.cluster[0].position.x)
-            
-    def draw(self):
-        for celestial_body in self.cluster:
-            celestial_body.draw()
-        
-    def include(self, celestial_body):
-        for cluster_body in self.cluster:
-            cluster_body.add_neighbor(celestial_body)
-            celestial_body.add_neighbor(cluster_body)
-        self.cluster.append(celestial_body)
+    #"KEY": (distance, speed, mass, radius, color)
+	EARTHSYS= lambda: (
+		[CelestialBody( 0, 0*TIME_RESOLUTION, 5.97237*(10**24), 6.371*(10**3), color.BLUE)], #EARTH
+		[CelestialBody(405400*(10**3) , 959.583333333333333333333*TIME_RESOLUTION, 7.342* (10**22), 1737.1*(10**3), color.WHITE) ]) #MOON
+
+	SOLARSYS= lambda: (
+		[CelestialBody(0, 0, 1.98855*(10**30), 695700*(10**3))], #SUN
+		[CelestialBody(816.04*(10**9), 12.44*(10**3), 1.8986*(10**27), 69911*(10**3)) ]) #JUPITER        
+
+	def __init__(self):
+		#self.cluster= []
+		
+		self.cluster, orbital_list= CelestialCluster.EARTHSYS()
+		
+		for orbital in orbital_list:
+			self.include(orbital)
+			
+	def update(self):
+		print("EARTH: "+str(self.cluster[0].speed.x))
+		print("MOON: "+str(self.cluster[1].speed.x))
+		#print(self.cluster[1].position.x)
+		for celestial_body in self.cluster:
+			celestial_body.update()
+			
+	def draw(self):
+		for celestial_body in self.cluster:
+			celestial_body.draw()
+		
+	def include(self, celestial_body):
+		for cluster_body in self.cluster:
+			cluster_body.add_neighbor(celestial_body)
+			celestial_body.add_neighbor(cluster_body)
+		self.cluster.append(celestial_body)
     
 class StarDome():
 
-    def __init__(self):
-        #generate stars
-        starnum= 30000
-        self.star= []
-        
-        for num in range(starnum):
-            self.star.append( [(random.randint(0, WINDOW_HEIGHT-1), random.randint(0, WINDOW_WIDTH-1)), random.randint(3, 8) ])
-    
-    def draw(self):
-        canvas.fill(color.WHITE)
-        for stup in self.star:
-            draw.circle(canvas, color.BLACK, stup[0], stup[1])
+	def __init__(self):
+		#generate stars
+		starnum= 30000
+		self.star= []
+
+		for num in range(starnum):
+			self.star.append( [(random.randint(0, WINDOW_HEIGHT-1), random.randint(0, WINDOW_WIDTH-1)), random.randint(3, 8) ])
+
+	def draw(self):
+		canvas.fill(color.WHITE)
+		for stup in self.star:
+			draw.circle(canvas, color.BLACK, stup[0], stup[1])
             
-    def update(self):
-        None
+	def update(self):
+		pass
     
 class CelestialBody:
-    
-    def __init__(self, position, speed, mass, radius):
-        #distance é dada em metros
-        #speed em metros por segundo
-        #mass em quilos
-        
-        self.position= Cardinal(position, 0, 0)
-        self.speed= Cardinal(0, speed, 0)
-        self.mass= mass
-        self.radius= radius
-        
-        self.celestial_neighbor= []
-        
-        self.tick= 0
-        
-        self.lista_dis = []
-    
-    def update(self):
-        self.update_speed()
-        self.update_position()
-        
-        self.tick+= 1
-        self.tick%= 1024
-    
-    def update_position(self):
-        
-        self.position.x+= self.speed.x*TIME_RESOLUTION
-        self.position.y+= self.speed.y*TIME_RESOLUTION
-        self.position.z+= self.speed.z*TIME_RESOLUTION
-        
-    def update_speed(self):        
-        
-        for celestial_body in self.celestial_neighbor:
-            
-            distance= Cardinal(
-                self.position.x - celestial_body.position.x,
-                self.position.y - celestial_body.position.y,
-                self.position.z - celestial_body.position.z)
-                
-            relative_constant= distance.vectorize()**3/(GRAVCONST*celestial_body.mass)
-            self.speed.x+= ( distance.x/relative_constant )*TIME_RESOLUTION
-            self.speed.y+= ( distance.y/relative_constant )*TIME_RESOLUTION
-            self.speed.z+= ( distance.z/relative_constant )*TIME_RESOLUTION
-        
-    def add_neighbor(self, celestial_body):
-        
-        self.celestial_neighbor.append(celestial_body)
-        
-    def draw(self):
-        #draw pulse
-        draw.circle(canvas, color.make_transparent(color.BLACK, color.WHITE, 0.5 + (self.tick%64)/128), perspective.window(self), int(self.radius/SCALE)+int( ((self.tick%64)/2)**0.7 ))
-        #draw itself
-        draw.circle(canvas, color.WHITE, (int(WINDOW_HEIGHT//2+self.position.x/SCALE), int(WINDOW_WIDTH//2+self.position.y/SCALE)), int(self.radius/SCALE))
-        #draw.circle(canvas, color.WHITE, (int(WINDOW_HEIGHT//2+self.position.x/SCALE), int(WINDOW_WIDTH//2+self.position.y/SCALE)), 20)
-#
+
+	def __init__(self, position, speed, mass, radius, color):
+		#distance é dada em metros
+		#speed em metros por segundo
+		#mass em quilos
+
+		self.position= Cardinal(int(position), 0, 0)
+		self.speed= Cardinal(0, speed, 0)
+		self.mass= int(mass)
+		self.radius= int(radius)
+		self.color= color
+
+		self.celestial_neighbor= []
+
+		self.tick= 0
+
+		self.lista_dis = []
+
+	def update(self):
+		self.update_speed()
+		self.update_position()
+
+		self.tick+= 1
+		self.tick%= 1024
+
+	def update_position(self):
+
+		self.position.x+= int(self.speed.x)#*TIME_RESOLUTION
+		self.position.y+= int(self.speed.y)#*TIME_RESOLUTION
+		self.position.z+= int(self.speed.z)#*TIME_RESOLUTION
+
+	def update_speed(self): 
+		#print( type(self.speed.x) )
+
+		for celestial_body in self.celestial_neighbor:
+
+			distance= Cardinal(
+				celestial_body.position.x - self.position.x ,
+				celestial_body.position.y - self.position.y ,
+				celestial_body.position.z - self.position.z )
+				
+			#relative_constant= int(distance.vectorize()**3/(GRAVCONST*celestial_body.mass))
+			#self.speed.x+= ( distance.x*TIME_RESOLUTION)//relative_constant
+			#self.speed.y+= ( distance.y*TIME_RESOLUTION)//relative_constant
+			#self.speed.z+= ( distance.z*TIME_RESOLUTION)//relative_constant
+			relative_constant= GRAVCONST*celestial_body.mass/(distance.vectorize()**2)
+			#print(relative_constant*distance.x/distance.vectorize())
+			self.speed.x+= relative_constant*distance.x/distance.vectorize()
+			self.speed.y+= relative_constant*distance.y/distance.vectorize()
+			self.speed.z+= relative_constant*distance.z/distance.vectorize()
+			
+	def add_neighbor(self, celestial_body):
+		
+		self.celestial_neighbor.append(celestial_body)
+		
+	def draw(self):
+		#draw pulse
+		draw.circle(canvas, color.make_transparent(color.BLACK, self.color, 0.5 + (self.tick%64)/128), perspective.window(self),  perspective.perceived_size(self)+int( ((self.tick%64)/2)**0.7 ))
+		#draw itself
+		draw.circle(canvas, self.color, perspective.window(self), perspective.perceived_size(self))
+		#draw.circle(canvas, color.WHITE, (int(WINDOW_HEIGHT//2+self.position.x/SCALE), int(WINDOW_WIDTH//2+self.position.y/SCALE)), 20)
+	#
 
 def summon_asteroid():
 
-    speed= None
-    mass= None
-    RADIUS= None
-    #asteroid= OrbitalBody(position, speed, mass, RADIUS)
+	speed= None
+	mass= None
+	RADIUS= None
+	#asteroid= OrbitalBody(position, speed, mass, RADIUS)
 
-event= EventHandler()
+perspective= Perspective()
 dome= StarDome()
 celestial_cluster= CelestialCluster()
 
-perspective= Perspective()
+event= EventHandler(perspective)
 #--MAIN LOOP--
 while not event.quit:
-    sleep(20)
-    
-    event.update()
-    
-    #update things
-    dome.update()
-    celestial_cluster.update()
-    
-    #draw things
-    dome.draw()
-    celestial_cluster.draw()
-    
-    display.flip()
+	sleep(20)
+	
+	event.update()
+	
+	#update things
+	dome.update()
+	celestial_cluster.update()
+	
+	#draw things
+	dome.draw()
+	celestial_cluster.draw()
+	
+	display.flip()
