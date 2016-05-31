@@ -8,10 +8,11 @@ Created on Wed May 18 17:13:14 2016
 import pygame
 import random
 import color
+from perspective import Perspective
+from cardinal import Cardinal
 
 GRAVCONST= 6.67*(10**(-11)) #em Newton*(Metro quadrado)/(quilos quadrados)
 
-SCALE= 3*(10**9) #em quilômetros por pixel
 TIME_RESOLUTION= 3600*24*1 #intervalo de tempo, em segundos, em que cada ponto é calculado
 WINDOW_HEIGHT= 800
 WINDOW_WIDTH= 600
@@ -89,29 +90,19 @@ class StarDome():
 
     def __init__(self):
         #generate stars
-        starnum= 60
+        starnum= 30000
         self.star= []
         
         for num in range(starnum):
-            self.star.append( [(random.randint(0, WINDOW_HEIGHT-1), random.randint(0, WINDOW_WIDTH-1)), random.randint(1, 4) ])
+            self.star.append( [(random.randint(0, WINDOW_HEIGHT-1), random.randint(0, WINDOW_WIDTH-1)), random.randint(1, 8) ])
     
     def draw(self):
-        canvas.fill(color.BLACK)
+        canvas.fill(color.WHITE)
         for stup in self.star:
-            draw.circle(canvas, color.WHITE, stup[0], stup[1])
+            draw.circle(canvas, color.BLACK, stup[0], stup[1])
             
     def update(self):
         None
-
-class Cardinal:
-    
-    def __init__(self, x, y, z):
-        self.x= x
-        self.y= y
-        self.z= z
-        
-    def vectorize(self):
-        return (self.x**2 + self.y**2 + self.z**2)**(1/2)
     
 class CelestialBody:
     
@@ -162,7 +153,7 @@ class CelestialBody:
         
     def draw(self):
         #draw pulse
-        draw.circle(canvas, color.make_transparent(color.BLACK, color.WHITE, 0.5 + (self.tick%64)/128), (int(WINDOW_HEIGHT//2+self.position.x/SCALE), int(WINDOW_WIDTH//2+self.position.y/SCALE)), int(self.radius/SCALE)+int( ((self.tick%64)/2)**0.7 ))
+        draw.circle(canvas, color.make_transparent(color.BLACK, color.WHITE, 0.5 + (self.tick%64)/128), perspective.window(self), int(self.radius/SCALE)+int( ((self.tick%64)/2)**0.7 ))
         #draw itself
         draw.circle(canvas, color.WHITE, (int(WINDOW_HEIGHT//2+self.position.x/SCALE), int(WINDOW_WIDTH//2+self.position.y/SCALE)), int(self.radius/SCALE))
         #draw.circle(canvas, color.WHITE, (int(WINDOW_HEIGHT//2+self.position.x/SCALE), int(WINDOW_WIDTH//2+self.position.y/SCALE)), 20)
@@ -176,12 +167,13 @@ def summon_asteroid():
     #asteroid= OrbitalBody(position, speed, mass, RADIUS)
 
 event= EventHandler()
-
 dome= StarDome()
 celestial_cluster= CelestialCluster()
+
+perspective= Perspective()
 #--MAIN LOOP--
 while not event.quit:
-    sleep( 20)
+    sleep(20)
     
     event.update()
     
