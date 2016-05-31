@@ -12,7 +12,7 @@ from perspective import Perspective
 from cardinal import Cardinal
 import math
 
-TIME_RESOLUTION= 1*60*60#*24*1 #intervalo de tempo, em segundos, em que cada ponto é calculado
+TIME_RESOLUTION= 1*60*60*24#*1 #intervalo de tempo, em segundos, em que cada ponto é calculado
 GRAVCONST= 6.67*(10**(-11))*(TIME_RESOLUTION**2) #em Newton*(Metro quadrado)/(quilos quadrados)
 WINDOW_HEIGHT= 800
 WINDOW_WIDTH= 600
@@ -91,26 +91,31 @@ class EventHandler():
 
 class CelestialCluster():
     #"KEY": (distance, speed, mass, radius, color)
+	#note que a velocidade [e relativa ao ponto da órbita indicado, caso haja nota do contrário assuma que a distância é dada no afélio da órbita, com a velocidade nesse ponto (velocidade orbital mínima)
 	EARTHSYS= lambda: (
-		[CelestialBody( 0, 0*TIME_RESOLUTION, 5.97237*(10**24), 6.371*(10**3), color.BLUE)], #EARTH
-		[CelestialBody(405400*(10**3) , 959.583333333333333333333*TIME_RESOLUTION, 7.342* (10**22), 1737.1*(10**3), color.WHITE) ]) #MOON
+		CelestialBody( 0, 0*TIME_RESOLUTION, 5.97237*(10**24), 6.371*(10**3), color.EARTH) ,
+		CelestialBody(405400*(10**3) , 959.583333333333333333333*TIME_RESOLUTION, 7.342* (10**22), 1737.1*(10**3), color.WHITE) )
 
 	SOLARSYS= lambda: (
-		[CelestialBody(0, 0, 1.98855*(10**30), 695700*(10**3))], #SUN
-		[CelestialBody(816.04*(10**9), 12.44*(10**3), 1.8986*(10**27), 69911*(10**3)) ]) #JUPITER        
+		CelestialBody(0, 0*TIME_RESOLUTION, 1988500*(10**24), 695700*(10**3), color.SUN) ,
+		CelestialBody(69.82*(10**9), 38.7*(10**3)*TIME_RESOLUTION, 0.33011*(10**24), 2439.9*(10**3), color.MERCURY) ,
+		CelestialBody(108.94*(10**9), 34.74*(10**3)*TIME_RESOLUTION, 4.8675*(10**24), 6051.8*(10**3), color.VENUS) ,
+		CelestialBody(152.10*(10**9), 29.29*(10**3)*TIME_RESOLUTION, 5.9723*(10**24), 6371.0*(10**3), color.EARTH) ,
+		CelestialBody(249.23*(10**9), 21.97*(10**3)*TIME_RESOLUTION, 0.64171*(10**24), 3389.5*(10**3), color.MARS) ,
+		CelestialBody(816.04*(10**9), 12.44*(10**3)*TIME_RESOLUTION, 1.8986*(10**24), 69911*(10**3), color.JUPITER) ,
+		CelestialBody(1514.5*(10**9), 9.09*(10**3)*TIME_RESOLUTION, 568.34*(10**24), 58232*(10**3), color.SATURN) ,
+		CelestialBody(3003.62*(10**9), 6.49*(10**3)*TIME_RESOLUTION, 86.813*(10**24), 25362*(10**3), color.URANUS) ,
+		CelestialBody(4545.67*(10**9), 5.37*(10**3)*TIME_RESOLUTION, 102.413*(10**24), 24622*(10**3), color.NEPTUNE) )
 
 	def __init__(self):
-		#self.cluster= []
+		self.cluster= []
 		
-		self.cluster, orbital_list= CelestialCluster.EARTHSYS()
+		orbital_list= CelestialCluster.SOLARSYS()
 		
 		for orbital in orbital_list:
 			self.include(orbital)
 			
 	def update(self):
-		print("EARTH: "+str(self.cluster[0].speed.x))
-		print("MOON: "+str(self.cluster[1].speed.x))
-		#print(self.cluster[1].position.x)
 		for celestial_body in self.cluster:
 			celestial_body.update()
 			
@@ -220,12 +225,12 @@ celestial_cluster= CelestialCluster()
 event= EventHandler(perspective)
 #--MAIN LOOP--
 while not event.quit:
-	sleep(20)
+	sleep(2)
 	
 	event.update()
 	
 	#update things
-	dome.update()
+	#dome.update()
 	celestial_cluster.update()
 	
 	#draw things
