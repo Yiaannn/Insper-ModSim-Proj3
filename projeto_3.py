@@ -10,6 +10,7 @@ import random
 import color
 from perspective import Perspective
 from cardinal import Cardinal
+import math
 
 GRAVCONST= 6.67*(10**(-11)) #em Newton*(Metro quadrado)/(quilos quadrados)
 
@@ -23,6 +24,42 @@ current_time= pygame.time.get_ticks
 sleep= pygame.time.wait
 canvas= pygame.display.set_mode((WINDOW_HEIGHT, WINDOW_WIDTH))
 run= True
+
+'''
+equaçoes de colisão(2D):
+Vf * cos{angulo final} *(m1 + m2) = m1 * v1 + m2 * v2 * cos{angulo entre obj1 e obj2}
+Vf * sin{angulo final} *(m1 + m2) = m2 * v2 *sin{angulo entre obj1 e obj2}
+
+
+Algebra:
+Vf  = m1 * v1 + m2 * v2 * cos{angulo entre obj1 e obj2} / (cos{angulo final} *(m1 + m2))
+
+sin{angulo final} = m2 * v2 *sin{angulo entre obj1 e obj2} / (m1 * v1 + m2 * v2 * cos{angulo entre obj1 e obj2} / (cos{angulo final} *(m1 + m2)) *(m1 + m2)) 
+
+
+'''
+
+def colisão_2D(orbi_1,orbi_2,angulo):
+    m1 = orbi_1.mass
+    v1 =(orbi_1.speed.x**2 + orbi_1.speed.y**2) **(1/2)
+    v1 = math.fabs(v1)
+    
+    m2 = orbi_2.mass
+    v2 =(orbi_2.speed.x**2 + orbi_2.speed.y**2) **(1/2)
+    v2 = math.fabs(v2)
+    
+        
+    angulo_final_SemSin = m2 * v2 * math.sin(angulo)/ ((m1 * v1 + m2 * v2 * math.cos(angulo))/ (math.cos(angulo) * (m1 + m2)) *(m1 + m2)) 
+    angulo_final = math.sin(angulo_final_SemSin)
+    
+    Vf = m1 * v1 + m2 * v2 * math.cos(angulo) / (math.cos(angulo_final) *(m1 + m2))
+
+    return Vf,angulo_final
+    
+def distancia(orbi_a,orbi_b):
+    dist = math.sqrt(((orbi_a.position.x - orbi_b.position.x)**2) + ((orbi_a.position.x - orbi_b.position.x) **2))
+    return math.fabs(dist)
+    
     
 class EventHandler():
     
@@ -94,7 +131,7 @@ class StarDome():
         self.star= []
         
         for num in range(starnum):
-            self.star.append( [(random.randint(0, WINDOW_HEIGHT-1), random.randint(0, WINDOW_WIDTH-1)), random.randint(1, 8) ])
+            self.star.append( [(random.randint(0, WINDOW_HEIGHT-1), random.randint(0, WINDOW_WIDTH-1)), random.randint(3, 8) ])
     
     def draw(self):
         canvas.fill(color.WHITE)
@@ -119,6 +156,8 @@ class CelestialBody:
         self.celestial_neighbor= []
         
         self.tick= 0
+        
+        self.lista_dis = []
     
     def update(self):
         self.update_speed()
