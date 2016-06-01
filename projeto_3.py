@@ -11,6 +11,8 @@ import color
 from perspective import Perspective
 from cardinal import Cardinal
 import math
+import os
+from graficos import grafico
 
 TIME_RESOLUTION= 1*60*60*24#*1 #intervalo de tempo, em segundos, em que cada ponto é calculado
 GRAVCONST= 6.67*(10**(-11))*(TIME_RESOLUTION**2) #em Newton*(Metro quadrado)/(quilos quadrados)
@@ -38,7 +40,7 @@ sin{angulo final} = m2 * v2 *sin{angulo entre obj1 e obj2} / (m1 * v1 + m2 * v2 
 
 '''
 
-def colisão_2D(orbi_1,orbi_2,angulo):
+def colisão_2D_a(orbi_1,orbi_2):
     m1 = orbi_1.mass
     v1 =(orbi_1.speed.x**2 + orbi_1.speed.y**2) **(1/2)
     v1 = math.fabs(v1)
@@ -47,7 +49,9 @@ def colisão_2D(orbi_1,orbi_2,angulo):
     v2 =(orbi_2.speed.x**2 + orbi_2.speed.y**2) **(1/2)
     v2 = math.fabs(v2)
     
-        
+    angulo = (((orbi_1.speed.x * orbi_2.speed.x) + (orbi_1.speed.y * orbi_2.speed.y)) / (math.sqrt((orbi_1.speed.x ** 2) * (orbi_1.speed.y ** 2)) * (math.sqrt((orbi_1.speed.y ** 2) * (orbi_1.speed.y ** 2)))))
+    angulo = math.cos(angulo)
+    
     angulo_final_SemSin = m2 * v2 * math.sin(angulo)/ ((m1 * v1 + m2 * v2 * math.cos(angulo))/ (math.cos(angulo) * (m1 + m2)) *(m1 + m2)) 
     angulo_final = math.sin(angulo_final_SemSin)
     
@@ -55,9 +59,23 @@ def colisão_2D(orbi_1,orbi_2,angulo):
 
     return Vf,angulo_final
     
+
+    
 def distancia(orbi_a,orbi_b):
     dist = math.sqrt(((orbi_a.position.x - orbi_b.position.x)**2) + ((orbi_a.position.x - orbi_b.position.x) **2))
     return math.fabs(dist)
+    
+def distancia_2_planetas(cluster,orbi_1,orbi_2):
+    for planet in cluster:
+        if planet.color == orbi_1:
+            planeta_1 = planet
+            print(planeta_1)
+            
+        if planet.color == orbi_2:
+            planeta_2 = planet
+            print(planeta_2)
+            
+    return distancia(planeta_1,planeta_2)
     
     
 class EventHandler():
@@ -223,18 +241,29 @@ dome= StarDome()
 celestial_cluster= CelestialCluster()
 
 event= EventHandler(perspective)
+distancia_corpos = []
+
+os.environ['SDL_VIDEO_WINDOW_POS'] = "0, 0"
 #--MAIN LOOP--
+
+
 while not event.quit:
-	sleep(2)
-	
-	event.update()
-	
-	#update things
-	#dome.update()
-	celestial_cluster.update()
-	
-	#draw things
-	dome.draw()
-	celestial_cluster.draw()
-	
-	display.flip()
+    sleep(2)
+    	
+    event.update()
+    	
+       
+     
+    #update things
+    #dome.update()
+    celestial_cluster.update()
+    	
+    #draw things
+    dome.draw()
+    celestial_cluster.draw()
+     
+    distancia_corpos.append(distancia_2_planetas(celestial_cluster.cluster,color.EARTH,color.SUN))
+    display.flip()
+
+print(distancia_corpos)
+grafico(ticks,distancia_corpos,TIME_RESOLUTION)
