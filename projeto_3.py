@@ -50,20 +50,23 @@ def colisão_2D_a(orbi_1,orbi_2):
     return Vf,angulo_final
     
 def distancia(orbi_a,orbi_b):
-    dist = math.sqrt(((orbi_a.position.x - orbi_b.position.x)**2) + ((orbi_a.position.x - orbi_b.position.x) **2))
+    dist = math.sqrt(((orbi_a.position.x - orbi_b.position.x)**2) + ((orbi_a.position.y - orbi_b.position.y) **2))
     return math.fabs(dist)
     
 def distancia_2_planetas(cluster,orbi_1,orbi_2):
-    for planet in cluster:
-        if planet.color == orbi_1:
-            planeta_1 = planet
-            print(planeta_1)
-            
-        if planet.color == orbi_2:
-            planeta_2 = planet
-            print(planeta_2)
-            
-    return distancia(planeta_1,planeta_2)
+    try:
+        for planet in cluster:
+            if planet.color == orbi_1:
+                planeta_1 = planet
+#                print(planeta_1)
+                
+            if planet.color == orbi_2:
+                planeta_2 = planet
+#                print(planeta_2)
+                
+        return distancia(planeta_1,planeta_2)
+    except:
+        print('planeta não encontrado')
     
     
 class EventHandler():
@@ -246,5 +249,8 @@ while not event.quit:
     #draw things
     Display.update()
     
-    print(distancia_corpos)
-    grafico(ticks,distancia_corpos,TIME_RESOLUTION)
+    
+    distancia_corpos.append(distancia_2_planetas(celestial_cluster.cluster,color.EARTH,color.SUN))
+    
+print(min(distancia_corpos))
+grafico(ticks,distancia_corpos,TIME_RESOLUTION)
