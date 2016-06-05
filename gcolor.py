@@ -70,6 +70,15 @@ class Gcolor:
             light1[i]= light1[i]*(1-factor) + light2[i]*factor
         
         return Gcolor.paint(light1)
+        
+    def darken(color, factor):
+        color= Gcolor.sanitize(color)
+        
+        for i in range(3):
+            color[i]*= (1-factor)
+            color[i]= int(color[i])
+            
+        return color
     
     def chill(color, factor):
         #eu não sei o que acabei fazendo mas gostei do resultado

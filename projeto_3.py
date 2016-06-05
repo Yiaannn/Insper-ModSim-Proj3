@@ -251,13 +251,6 @@ while not event.quit:
     #draw things
     Display.update()
     
-<<<<<<< HEAD
     #print(distancia_corpos)
     #grafico(ticks,distancia_corpos,gtime.RESOLUTION)
-=======
-    
-    distancia_corpos.append(distancia_2_planetas(celestial_cluster.cluster,color.EARTH,color.SUN))
-    
-print(min(distancia_corpos))
-grafico(ticks,distancia_corpos,TIME_RESOLUTION)
->>>>>>> origin/master
+    #distancia_corpos.append(distancia_2_planetas(celestial_cluster.cluster,color.EARTH,color.SUN))
