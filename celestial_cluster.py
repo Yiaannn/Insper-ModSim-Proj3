@@ -39,6 +39,9 @@ class CelestialCluster():
     def draw():
         for celestial_body in CelestialCluster.cluster:
             celestial_body.draw()
+            
+    def event_collision(event):
+        print("DEBUG2: Collision")
         
     def include( celestial_body):
         for cluster_body in CelestialCluster.cluster:
@@ -88,15 +91,18 @@ class CelestialBody:
                 celestial_body.position.y - self.position.y ,
                 celestial_body.position.z - self.position.z )
                 
-            #relative_constant= int(distance.vectorize()**3/(GRAVCONST*celestial_body.mass))
-            #self.speed.x+= ( distance.x*gtime.RESOLUTION)//relative_constant
-            #self.speed.y+= ( distance.y*gtime.RESOLUTION)//relative_constant
-            #self.speed.z+= ( distance.z*gtime.RESOLUTION)//relative_constant
-            relative_constant= GRAVCONST*celestial_body.mass/(distance.vectorize()**2)
-            #print(relative_constant*distance.x/distance.vectorize())
-            self.speed.x+= relative_constant*distance.x/distance.vectorize()
-            self.speed.y+= relative_constant*distance.y/distance.vectorize()
-            self.speed.z+= relative_constant*distance.z/distance.vectorize()
+            if distance.vectorize() > self.radius + celestial_body.radius:
+                relative_constant= GRAVCONST*celestial_body.mass/(distance.vectorize()**2)
+                
+                self.speed.x+= relative_constant*distance.x/distance.vectorize()
+                self.speed.y+= relative_constant*distance.y/distance.vectorize()
+                self.speed.z+= relative_constant*distance.z/distance.vectorize()
+            else:
+                #aconteceu uma colisão, tratar aqui
+                print("DEBUG2: Collision")
+                Gevent.push( Gevent.build_event( {
+                    "type": Gevent.COLLISION ,
+                    "celestial_bodies": [self, celestial_body] } ) )
             
     def add_neighbor(self, celestial_body):
         
@@ -106,7 +112,11 @@ class CelestialBody:
         from perspective import Perspective
         
         #draw pulse
-        draw.circle(display.CANVAS, self.color.mix(self.color.BLACK, 0.5 + (self.tick%64)/128), Perspective.window(self),  Perspective.perceived_size(self)+int( ((self.tick%64)/2)**0.7 ))
-        
+        if self.tick%64 >= 32:
+            draw.circle(display.CANVAS, self.color.mix(self.color.BLACK, 0.5 + (self.tick%64)/128), Perspective.window(self),  Perspective.perceived_size(self)+int( ((self.tick%64)/2)**0.7 ))
+            draw.circle(display.CANVAS, self.color.mix(self.color.BLACK, 0.5 + ((self.tick+32)%64)/128), Perspective.window(self),  Perspective.perceived_size(self)+int( (((self.tick+32)%64)/2)**0.7 ))
+        else:
+            draw.circle(display.CANVAS, self.color.mix(self.color.BLACK, 0.5 + ((self.tick+32)%64)/128), Perspective.window(self),  Perspective.perceived_size(self)+int( (((self.tick+32)%64)/2)**0.7 ))
+            draw.circle(display.CANVAS, self.color.mix(self.color.BLACK, 0.5 + (self.tick%64)/128), Perspective.window(self),  Perspective.perceived_size(self)+int( ((self.tick%64)/2)**0.7 ))
         #draw itself
         draw.circle(display.CANVAS, self.color.get(), Perspective.window(self), Perspective.perceived_size(self))

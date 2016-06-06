@@ -7,6 +7,7 @@ class Gevent():
     CLICK= 1
     SCROLLUP= 2
     SCROLLDOWN= 3
+    COLLISION= 400
     
     quit= False
     buffer= []
@@ -15,6 +16,7 @@ class Gevent():
         from display import Display
         
         ORDER= {
+            Gevent.COLLISION: Gevent.event_collision ,
             pygame.MOUSEBUTTONDOWN: Gevent.event_mouse ,
             pygame.QUIT: Gevent.event_quit }
             
@@ -54,6 +56,11 @@ class Gevent():
                 event[keylist[0]] = value
                 
             return Gevent.build_event(event)
+            
+    def event_collision(event):
+        from celestial_cluster import CelestialCluster
+        
+        CelestialCluster.event_collision(event)
         
     def event_mouse(stuff):
         x, y= pygame.mouse.get_pos()
