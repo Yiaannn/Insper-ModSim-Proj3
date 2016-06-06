@@ -6,23 +6,34 @@ Created on Wed Jun  1 14:14:02 2016
 """
 import matplotlib.pyplot as plt
 import gtime
+import pygame.draw
+import gcolor
+
+class guardaListas:
+    
+    def __init__(self):
+        self.LISTATEMPO
+        self.LISTADISTANCIA
+    
+#    def update():
+            #calcula distancia atual entre os corpos
+            #apende a lista tempo
+        #quando lista tiver tamanho x, gera grafico
+def grafico_pyplot(x,y):
+    lista_tempo = []
+
+    for tick in x:
+            tempo = tick * gtime.RESOLUTION
+            tempo = conversor_tempo_a(tempo)
+            lista_tempo.append(tempo)
+    
+    plt.plot(lista_tempo,y)
+    plt.show()
 
 
-def grafico_pyplot(x,y,TIME_RESOLUTION = 1):
-    if x == -1:
-        tempo = gtime.ticks * gtime.RESOLUTION
-        tempo = conversor_tempo_a(tempo)
-        
-        plt.plot(tempo,y)
-        plt.show
-    else:
-        
-        plt.plot(x,y)
-        plt.show
 
-
-def grafico(x,y,TIME_RESOLUTION = 1):
-    x = 0
+def grafico(x,y,screen,TIME_RESOLUTION = 1):
+    pygame.draw.rect(screen, gcolor.Gcolor.BLUE, [1, 1, x, y])
         
         
 def conversor_tempo_a(tempo): #converte para anos(por isso a)

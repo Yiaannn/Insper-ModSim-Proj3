@@ -9,7 +9,9 @@ from celestial_cluster import CelestialCluster
 from syscomm import SysComm
 from display import Display
 import os
-from graficos import grafico
+import math
+import graficos
+import gtime
 
 '''
 equaçoes de colisão(2D):
@@ -90,9 +92,10 @@ def summon_asteroid():
     
 #dome= StarDome()
 CelestialCluster.init()
-Perspective.lock_on(CelestialCluster.cluster[1])
+Perspective.lock_on(CelestialCluster.cluster[0])
 
 distancia_corpos = []
+lista_ticks = []
 
 os.environ['SDL_VIDEO_WINDOW_POS'] = "0, 0"
 #--MAIN LOOP--
@@ -119,6 +122,8 @@ while not SysComm.quit:
     #print(distancia_corpos)
     #grafico(ticks,distancia_corpos,gtime.RESOLUTION)
     distancia_corpos.append(distancia_2_planetas(CelestialCluster.cluster,CelestialCluster.cluster[3],CelestialCluster.cluster[0]))
-    print (distancia_corpos)
+    lista_ticks.append(gtime.tick)
+
     
-print ('final')
+print (len(lista_ticks),len(distancia_corpos))
+graficos.grafico_pyplot(lista_ticks,distancia_corpos)
