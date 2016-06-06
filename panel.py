@@ -1,4 +1,5 @@
 from gcolor import Gcolor
+from gevent import Gevent
 from widget import Widget
 import pygame.font
 import pygame.draw
@@ -81,22 +82,22 @@ class Panel:
         self.tick= 0
         self.tick2= 0
         
-    def event_mouse(self, etype, position):
+    def event_mouse(self, event):
         if not self.busy:
             if not self.active:
-                if etype == "move":
+                if event.type == Gevent.MOVE:
                     self.mouse_over= True
                     
-                elif etype == "click":
+                elif event.type == Gevent.CLICK:
                     self.busy= True
                     
             else:
-                if etype == "move":
-                    if position[0] < self.banner.STRAP_WIDTH:
+                if event.type == Gevent.MOVE:
+                    if event.position.x < self.banner.STRAP_WIDTH:
                         self.mouse_over= True
                         
-                if etype == "click":
-                    if position[0] >= self.banner.STRAP_WIDTH:
+                if event.type == Gevent.CLICK:
+                    if event.position.x >= self.banner.STRAP_WIDTH:
                         #detectar em que widget do menu eu cliquei
                         #passar o controle pra esse widget
                         pass
@@ -107,7 +108,7 @@ class Panel:
         
         if self.active:
             if not self.busy:
-                if self.mouse_over and self.tick != self.MAX_TICK//3:
+                if self.mouse_over and self.tick != self.MAX_TICK//2:
                     self.tick+=1
                 elif not self.mouse_over and self.tick!= 0:
                     self.tick-=1

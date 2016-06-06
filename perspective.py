@@ -1,26 +1,31 @@
 from cardinal import Cardinal
-from display import MainFrame
+from celestial_cluster import CelestialCluster
+from gevent import Gevent
+
 
 class Perspective():
-
-    def __init__(self, cluster):
-        self.cluster= cluster
-        self.position= Cardinal(0, 0, 0)
-        self.scale= 3*(10**7) #em quilômetros por pixel
+    position= Cardinal(0, 0, 0)
+    cluster= CelestialCluster.cluster
+    scale= 3*(10**7) #em metros por pixel
         
-        self.lock_on(cluster[0])
+    def lock_on( new_lock):
+        Perspective.position= new_lock.position
+
+    def window(celestial_body):
+        from display import MainFrame
         
-    def lock_on(self, new_lock):
-        self.position= new_lock.position
-
-    def window(self, celestial_body):
-
-        x= (MainFrame.WIDTH//2) + (celestial_body.position.x - self.position.x)//self.scale
-        y= (MainFrame.HEIGTH//2) - (celestial_body.position.y - self.position.y)//self.scale
+        x= (MainFrame.WIDTH//2) + (celestial_body.position.x - Perspective.position.x)//Perspective.scale
+        y= (MainFrame.HEIGTH//2) - (celestial_body.position.y - Perspective.position.y)//Perspective.scale
 
         return x, y
 
-    def perceived_size(self, celestial_body):
-        radius= celestial_body.radius//self.scale
+    def perceived_size(celestial_body):
+        radius= celestial_body.radius//Perspective.scale
         return radius
+        
+    def event_mouse(event):
+        if event.type == Gevent.SCROLLUP:
+            Perspective.scale= int(Perspective.scale**(1.01/1))
+        else:
+            Perspective.scale= int(Perspective.scale**(1/1.01))
         

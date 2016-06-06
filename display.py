@@ -1,5 +1,8 @@
 from gcolor import Gcolor
 from panel import Panel
+from celestial_cluster import CelestialCluster
+from gevent import Gevent
+from perspective import Perspective
 import pygame.display
 import pygame.draw
         
@@ -14,11 +17,13 @@ class Display:
         Sidebar.update()
         pygame.display.flip()
         
-    def event_mouse(etype, position):
+    def event_mouse(event):
     
-        if position[0] > (Display.WIDTH - Sidebar.WIDTH):
-            position[0]-= (Display.WIDTH - Sidebar.WIDTH)
-            Sidebar.event_mouse(etype, position)
+        if event.position.x > (Display.WIDTH - Sidebar.WIDTH):
+            event= Gevent.edit_event(event, ["position", "x"], event.position.x - (Display.WIDTH - Sidebar.WIDTH) )
+            Sidebar.event_mouse(event)
+        else:
+            MainFrame.event_mouse(event)
         
      
 class MainFrame:
@@ -27,11 +32,15 @@ class MainFrame:
     HEIGTH= Display.HEIGTH
     CANVAS= Display.CANVAS.subsurface( (0, 0), (WIDTH, HEIGTH) )
 
-    drawable=[]
+    drawable=CelestialCluster.cluster
 
     def update():
         for thing in MainFrame.drawable:
             thing.draw(MainFrame)
+    
+    def event_mouse(event):
+        if event.type == Gevent.SCROLLUP or event.type == Gevent.SCROLLDOWN:
+            Perspective.event_mouse(event)
 
 class Sidebar:
     WIDTH= Panel.WIDTH
@@ -55,11 +64,11 @@ class Sidebar:
         if Sidebar.active_panel != None:
             Sidebar.active_panel.draw()
             
-    def event_mouse(etype, position):
+    def event_mouse(event):
         if not Sidebar.active_panel:
-            panel_index= position[1]//Panel.BANNER_HEIGTH
+            panel_index= event.position.y//Panel.BANNER_HEIGTH
             
             if panel_index < len(Sidebar.MENU):
-               Sidebar.MENU[panel_index].event_mouse(etype, position)
+               Sidebar.MENU[panel_index].event_mouse(event)
         else:
-            Sidebar.active_panel.event_mouse(etype, position)
+            Sidebar.active_panel.event_mouse(event)
