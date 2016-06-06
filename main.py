@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import random
 from gcolor import Gcolor
 import gtime
@@ -7,9 +9,7 @@ from celestial_cluster import CelestialCluster
 from gevent import Gevent
 import math
 from display import Display
-
 import os
-import math
 from graficos import grafico
 
 '''
@@ -51,18 +51,18 @@ def distancia(orbi_a,orbi_b):
     
 def distancia_2_planetas(cluster,orbi_1,orbi_2):
     try:
-        for planet in cluster:
-            if planet.color == orbi_1:
+        for planet in CelestialCluster.cluster:
+            if planet == orbi_1:
                 planeta_1 = planet
 #                print(planeta_1)
                 
-            if planet.color == orbi_2:
+            if planet == orbi_2:
                 planeta_2 = planet
 #                print(planeta_2)
                 
         return distancia(planeta_1,planeta_2)
     except:
-        print('planeta não encontrado')
+        print('erro')
 
 class StarDome():
 
@@ -91,12 +91,13 @@ def summon_asteroid():
     
 #dome= StarDome()
 CelestialCluster.init()
-Perspective.lock_on(CelestialCluster.cluster[0])
+Perspective.lock_on(CelestialCluster.cluster[1])
 
 distancia_corpos = []
 
 os.environ['SDL_VIDEO_WINDOW_POS'] = "0, 0"
 #--MAIN LOOP--
+
 
 
 while not Gevent.quit:
@@ -118,4 +119,7 @@ while not Gevent.quit:
     
     #print(distancia_corpos)
     #grafico(ticks,distancia_corpos,gtime.RESOLUTION)
-    #distancia_corpos.append(distancia_2_planetas(celestial_cluster.cluster,color.EARTH,color.SUN))
+    distancia_corpos.append(distancia_2_planetas(CelestialCluster.cluster,CelestialCluster.cluster[3],CelestialCluster.cluster[0]))
+    print (distancia_corpos)
+    
+print ('final')
