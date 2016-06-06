@@ -1,6 +1,6 @@
 from cardinal import Cardinal
 from celestial_cluster import CelestialCluster
-from gevent import Gevent
+import gsignal
 
 
 class Perspective():
@@ -23,9 +23,9 @@ class Perspective():
         radius= celestial_body.radius//Perspective.scale
         return radius
         
-    def event_mouse(event):
-        if event.type == Gevent.SCROLLUP:
+    def read_signal(signal):
+        if signal.type == gsignal.SCROLLUP:
             Perspective.scale= int(Perspective.scale**(1.01/1))
-        else:
+        elif signal.type == gsignal.SCROLLDOWN:
             Perspective.scale= int(Perspective.scale**(1/1.01))
         

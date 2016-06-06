@@ -1,3 +1,5 @@
+import gsignal
+
 class Widget:
     Size= 1
     
@@ -13,10 +15,10 @@ class Widget:
     def draw(self):
         pass
         
-class ScrollBar(Widget):
+class Scrollbar(Widget):
     SIZE= 1
     
-    def __init__(text, text_color, color, list, event):
+    def __init__(text, color, list, signal, receiver):
         self.text= text
         self.text_color= text_color
         self.color= color

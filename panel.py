@@ -1,6 +1,6 @@
 from gcolor import Gcolor
-from gevent import Gevent
-from widget import Widget
+import gsignal
+import widget
 import pygame.font
 import pygame.draw
 import pygame.display
@@ -64,6 +64,7 @@ class Panel:
         "Erase": [] ,
         "Graph": [] ,
         "Save": [] }
+        
     def __init__(self, canvas, ptype, color, index):
         
         self.canvas= canvas
@@ -72,6 +73,11 @@ class Panel:
         self.text_color= self.color.mix(self.color.WHITE, 0.5)
         self.text=  self.FONT.render(ptype, True, self.text_color)
         self.index= index
+        
+        if self.ptype == "Camera":
+            pass
+            #from celestial_cluster import CelestialCluster
+            #widget_list= [widget.Scrollbar(self.FONT.render("Lock camera on: ", True, self.text_color), self.color, CelestialCluster.cluster, signal, receiver)]
         
         self.banner= Banner(self.text, self.color, pygame.Surface((Banner.WIDTH, Banner.HEIGTH) ) )
         self.body= Body( self.text, self.text_color, self.color, pygame.Surface( (Body.WIDTH, Body.HEIGTH) ), Panel.WIDGET_LIST[ptype])
@@ -82,22 +88,22 @@ class Panel:
         self.tick= 0
         self.tick2= 0
         
-    def event_mouse(self, event):
+    def  read_signal(self, signal):
         if not self.busy:
             if not self.active:
-                if event.type == Gevent.MOVE:
+                if signal.type == gsignal.MOVE:
                     self.mouse_over= True
                     
-                elif event.type == Gevent.CLICK:
+                elif signal.type == gsignal.CLICK:
                     self.busy= True
                     
             else:
-                if event.type == Gevent.MOVE:
-                    if event.position.x < self.banner.STRAP_WIDTH:
+                if signal.type == gsignal.MOVE:
+                    if signal.position.x < self.banner.STRAP_WIDTH:
                         self.mouse_over= True
                         
-                if event.type == Gevent.CLICK:
-                    if event.position.x >= self.banner.STRAP_WIDTH:
+                if signal.type == gsignal.CLICK:
+                    if signal.position.x >= self.banner.STRAP_WIDTH:
                         #detectar em que widget do menu eu cliquei
                         #passar o controle pra esse widget
                         pass

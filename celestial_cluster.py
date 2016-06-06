@@ -1,27 +1,28 @@
 import gtime
 from gcolor import Gcolor
 from cardinal import Cardinal
+import gsignal
 import pygame.draw as draw
 
-GRAVCONST= 6.67*(10**(-11))*(gtime.RESOLUTION**2) #em Newton*(Metro quadrado)/(quilos quadrados)
+GRAVCONST= 6.67*(10**(-11)) #em Newton*(Metro quadrado)/(quilos quadrados)
 
 class CelestialCluster():
-    #"KEY": (distance, speed, mass, radius, color)
+    #"KEY": (name, distance, speed, mass, radius, color)
     #note que a velocidade [e relativa ao ponto da órbita indicado, caso haja nota do contrário assuma que a distância é dada no afélio da órbita, com a velocidade nesse ponto (velocidade orbital mínima)
     #EARTHSYS= lambda: (
     #    CelestialBody( 0, 0*gtime.RESOLUTION, 5.97237*(10**24), 6.371*(10**3), gcolor.EARTH) ,
     #    CelestialBody(405400*(10**3) , 959.583333333333333333333*gtime.RESOLUTION, 7.342* (10**22), 1737.1*(10**3), gcolor.WHITE) )
 
     SOLARSYS= lambda: (
-        CelestialBody(0, 0*gtime.RESOLUTION, 1988500*(10**24), 695700*(10**3), Gcolor(Gcolor.SUN) ) ,
-        CelestialBody(69.82*(10**9), 38.7*(10**3)*gtime.RESOLUTION, 0.33011*(10**24), 2439.9*(10**3), Gcolor(Gcolor.MERCURY) ) ,
-        CelestialBody(108.94*(10**9), 34.74*(10**3)*gtime.RESOLUTION, 4.8675*(10**24), 6051.8*(10**3), Gcolor(Gcolor.VENUS) ) ,
-        CelestialBody(152.10*(10**9), 29.29*(10**3)*gtime.RESOLUTION, 5.9723*(10**24), 6371.0*(10**3), Gcolor(Gcolor.EARTH) ) ,
-        CelestialBody(249.23*(10**9), 21.97*(10**3)*gtime.RESOLUTION, 0.64171*(10**24), 3389.5*(10**3), Gcolor(Gcolor.MARS) ) ,
-        CelestialBody(816.04*(10**9), 12.44*(10**3)*gtime.RESOLUTION, 1.8986*(10**24), 69911*(10**3), Gcolor(Gcolor.JUPITER) ) ,
-        CelestialBody(1514.5*(10**9), 9.09*(10**3)*gtime.RESOLUTION, 568.34*(10**24), 58232*(10**3), Gcolor(Gcolor.SATURN) ) ,
-        CelestialBody(3003.62*(10**9), 6.49*(10**3)*gtime.RESOLUTION, 86.813*(10**24), 25362*(10**3), Gcolor(Gcolor.URANUS) ) ,
-        CelestialBody(4545.67*(10**9), 5.37*(10**3)*gtime.RESOLUTION, 102.413*(10**24), 24622*(10**3), Gcolor(Gcolor.NEPTUNE) ) )
+        CelestialBody("Sun", 0, 0, 1988500*(10**24), 695700*(10**3), Gcolor(Gcolor.SUN) ) ,
+        CelestialBody("Mercury", 69.82*(10**9), 38.7*(10**3), 0.33011*(10**24), 2439.9*(10**3), Gcolor(Gcolor.MERCURY) ) ,
+        CelestialBody("Venus", 108.94*(10**9), 34.74*(10**3), 4.8675*(10**24), 6051.8*(10**3), Gcolor(Gcolor.VENUS) ) ,
+        CelestialBody("Earth", 152.10*(10**9), 29.29*(10**3), 5.9723*(10**24), 6371.0*(10**3), Gcolor(Gcolor.EARTH) ) ,
+        CelestialBody("Mars", 249.23*(10**9), 21.97*(10**3), 0.64171*(10**24), 3389.5*(10**3), Gcolor(Gcolor.MARS) ) ,
+        CelestialBody("Jupiter", 816.04*(10**9), 12.44*(10**3), 1.8986*(10**24), 69911*(10**3), Gcolor(Gcolor.JUPITER) ) ,
+        CelestialBody("Saturn", 1514.5*(10**9), 9.09*(10**3), 568.34*(10**24), 58232*(10**3), Gcolor(Gcolor.SATURN) ) ,
+        CelestialBody("Uranus", 3003.62*(10**9), 6.49*(10**3), 86.813*(10**24), 25362*(10**3), Gcolor(Gcolor.URANUS) ) ,
+        CelestialBody("Neptune", 4545.67*(10**9), 5.37*(10**3), 102.413*(10**24), 24622*(10**3), Gcolor(Gcolor.NEPTUNE) ) )
         
     cluster=[]
 
@@ -35,13 +36,13 @@ class CelestialCluster():
     def update():
         for celestial_body in CelestialCluster.cluster:
             celestial_body.update()
-            
+     
     def draw():
         for celestial_body in CelestialCluster.cluster:
             celestial_body.draw()
             
-    def event_collision(event):
-        print("DEBUG2: Collision")
+    def read_signal(signal):
+        print("DEBUG2: Collision "+str(event.celestial_bodies))
         
     def include( celestial_body):
         for cluster_body in CelestialCluster.cluster:
@@ -51,11 +52,12 @@ class CelestialCluster():
         
 class CelestialBody:
 
-    def __init__(self, position, speed, mass, radius, color):
+    def __init__(self, name, position, speed, mass, radius, color):
         #distance é dada em metros
         #speed em metros por segundo
         #mass em quilos
-
+        
+        self.name= name
         self.position= Cardinal(int(position), 0, 0)
         self.speed= Cardinal(0, speed, 0)
         self.mass= int(mass)
@@ -77,9 +79,9 @@ class CelestialBody:
 
     def update_position(self):
 
-        self.position.x+= int(self.speed.x)#*gtime.RESOLUTION
-        self.position.y+= int(self.speed.y)#*gtime.RESOLUTION
-        self.position.z+= int(self.speed.z)#*gtime.RESOLUTION
+        self.position.x+= int(self.speed.x*gtime.RESOLUTION)
+        self.position.y+= int(self.speed.y*gtime.RESOLUTION)
+        self.position.z+= int(self.speed.z*gtime.RESOLUTION)
 
     def update_speed(self): 
         #print( type(self.speed.x) )
@@ -91,17 +93,24 @@ class CelestialBody:
                 celestial_body.position.y - self.position.y ,
                 celestial_body.position.z - self.position.z )
                 
-            if distance.vectorize() > self.radius + celestial_body.radius:
+            relative_speed= Cardinal(
+                celestial_body.speed.x - self.speed.x ,
+                celestial_body.speed.y - self.speed.y ,
+                celestial_body.speed.z - self.speed.z )
+                
+            #if distance.vectorize() > self.radius + celestial_body.radius:
+            if distance.vectorize() > ( self.radius + celestial_body.radius ) + relative_speed.vectorize()*gtime.RESOLUTION:
+                #Não tou muito confiante nessa checagem de colisão, mas ok
                 relative_constant= GRAVCONST*celestial_body.mass/(distance.vectorize()**2)
                 
-                self.speed.x+= relative_constant*distance.x/distance.vectorize()
-                self.speed.y+= relative_constant*distance.y/distance.vectorize()
-                self.speed.z+= relative_constant*distance.z/distance.vectorize()
+                self.speed.x+= relative_constant*distance.x*gtime.RESOLUTION/distance.vectorize()
+                self.speed.y+= relative_constant*distance.y*gtime.RESOLUTION/distance.vectorize()
+                self.speed.z+= relative_constant*distance.z*gtime.RESOLUTION/distance.vectorize()
             else:
                 #aconteceu uma colisão, tratar aqui
-                print("DEBUG2: Collision")
-                Gevent.push( Gevent.build_event( {
-                    "type": Gevent.COLLISION ,
+                #print("DEBUG2: Collision")
+                CelestialCluster.read_signal( gsignal.build( {
+                    "type": gsignal.COLLISION ,
                     "celestial_bodies": [self, celestial_body] } ) )
             
     def add_neighbor(self, celestial_body):
