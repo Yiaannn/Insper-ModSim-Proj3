@@ -4,8 +4,7 @@ import gtime
 from perspective import Perspective
 from cardinal import Cardinal
 from celestial_cluster import CelestialCluster
-from gevent import Gevent
-import math
+from syscomm import SysComm
 from display import Display
 
 import os
@@ -99,12 +98,12 @@ os.environ['SDL_VIDEO_WINDOW_POS'] = "0, 0"
 #--MAIN LOOP--
 
 
-while not Gevent.quit:
+while not SysComm.quit:
     current_time= gtime.current()
     
-    #crunch events
-    Gevent.update()
-
+    #update system interface
+    SysComm.update()
+    
     #update things
     CelestialCluster.update()
 

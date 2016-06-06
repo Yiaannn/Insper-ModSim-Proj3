@@ -1,7 +1,8 @@
 from gcolor import Gcolor
 from panel import Panel
 from celestial_cluster import CelestialCluster
-from gevent import Gevent
+import gsignal
+from syscomm import Mouse
 from perspective import Perspective
 import pygame.display
 import pygame.draw
@@ -10,21 +11,22 @@ class Display:
     WIDTH= 1600
     HEIGTH= 900
     CANVAS= pygame.display.set_mode( (WIDTH, HEIGTH) )
-
+    
     def update():
         Display.CANVAS.fill(Gcolor.BLACK)
         MainFrame.update()
         Sidebar.update()
         pygame.display.flip()
         
-    def event_mouse(event):
+    def read_signal(signal):
     
-        if event.position.x > (Display.WIDTH - Sidebar.WIDTH):
-            event= Gevent.edit_event(event, ["position", "x"], event.position.x - (Display.WIDTH - Sidebar.WIDTH) )
-            Sidebar.event_mouse(event)
+        if signal.position.x > (Display.WIDTH - Sidebar.WIDTH):
+            signal= gsignal.edit(signal, ["position", "x"], signal.position.x - (Display.WIDTH - Sidebar.WIDTH) )
+            Sidebar.read_signal(signal)
         else:
-            MainFrame.event_mouse(event)
-        
+            MainFrame.read_signal(signal)
+ 
+Mouse.set_listener(Display) 
      
 class MainFrame:
 
@@ -38,9 +40,9 @@ class MainFrame:
         for thing in MainFrame.drawable:
             thing.draw(MainFrame)
     
-    def event_mouse(event):
-        if event.type == Gevent.SCROLLUP or event.type == Gevent.SCROLLDOWN:
-            Perspective.event_mouse(event)
+    def read_signal(signal):
+        if signal.type == gsignal.SCROLLUP or signal.type == gsignal.SCROLLDOWN:
+            Perspective.read_signal(signal)
 
 class Sidebar:
     WIDTH= Panel.WIDTH
@@ -64,11 +66,11 @@ class Sidebar:
         if Sidebar.active_panel != None:
             Sidebar.active_panel.draw()
             
-    def event_mouse(event):
+    def read_signal(signal):
         if not Sidebar.active_panel:
-            panel_index= event.position.y//Panel.BANNER_HEIGTH
+            panel_index= signal.position.y//Panel.BANNER_HEIGTH
             
             if panel_index < len(Sidebar.MENU):
-               Sidebar.MENU[panel_index].event_mouse(event)
+               Sidebar.MENU[panel_index].read_signal(signal)
         else:
-            Sidebar.active_panel.event_mouse(event)
+            Sidebar.active_panel.read_signal(signal)
