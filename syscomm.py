@@ -25,6 +25,11 @@ class Mouse:
                             "type": gsignal.CLICK ,
                             "position":  {"x": x, "y": y} } )
                             
+                    elif event.button == 3:
+                        signal= gsignal.build( {
+                            "type": gsignal.LCLICK ,
+                            "position":  {"x": x, "y": y} } )
+                            
                     elif event.button == 4:
                         signal= gsignal.build( {
                             "type": gsignal.SCROLLDOWN ,

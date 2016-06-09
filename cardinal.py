@@ -7,3 +7,6 @@ class Cardinal:
 		
     def vectorize(self):
         return (self.x**2 + self.y**2 + self.z**2)**(1/2)
+        
+    def copy(self):
+        return Cardinal(self.x, self.y, self.z)

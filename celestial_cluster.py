@@ -25,7 +25,21 @@ class CelestialCluster():
         CelestialBody("Neptune", 4545.67*(10**9), 5.37*(10**3), 102.413*(10**24), 24622*(10**3), Gcolor(Gcolor.NEPTUNE) ) )
         
     cluster=[]
-
+    watchlist=[None, None, None] #[string, celestial_body, celestial_body]
+    listener= None
+    word_list=["Distance", "Relative Speed"]
+    
+    def load(sysname):
+        
+        if sysname == "Solar":
+            orbital_list= CelestialCluster.SOLARSYS()
+        elif sysname == "Earth - Moon":
+            orbital_list= CelestialCluster.EARTHSYS()
+        
+        
+        for orbital in orbital_list:
+            CelestialCluster.include(orbital)
+            
     def init():
         
         orbital_list= CelestialCluster.SOLARSYS()
@@ -36,19 +50,87 @@ class CelestialCluster():
     def update():
         for celestial_body in CelestialCluster.cluster:
             celestial_body.update()
-     
+            
+        if not None in CelestialCluster.watchlist and CelestialCluster.listener:
+            CelestialCluster.watch()
+            
+    def watch():
+        VECTOR= CelestialCluster.watchlist[0]
+        CBODY1= CelestialCluster.watchlist[1]
+        CBODY2= CelestialCluster.watchlist[2]
+        
+        if VECTOR == "Distance":
+            value= CelestialCluster.distance(CBODY1, CBODY2)
+            signal= gsignal.build( {
+                "type": gsignal.ACTION ,
+                "content": value } )
+        
+        CelestialCluster.listener.read_signal(signal)
+        
+    def distance(cbody1, cbody2):
+        distance= Cardinal(
+            cbody1.position.x - cbody2.position.x ,
+            cbody1.position.y - cbody2.position.y ,
+            cbody1.position.z - cbody2.position.z )
+        
+        return distance.vectorize()
+        
     def draw():
         for celestial_body in CelestialCluster.cluster:
             celestial_body.draw()
             
     def read_signal(signal):
-        print("DEBUG2: Collision "+str(event.celestial_bodies))
+        if signal.type == gsignal.WATCH1:
+            CelestialCluster.watchlist[1]= signal.target
+            if CelestialCluster.listener:
+                signal= gsignal.build( {
+                    "type": gsignal.RESET ,
+                    "content": CelestialCluster.watchlist[0] } )
+                CelestialCluster.listener.read_signal(signal)
+        elif signal.type == gsignal.WATCH2:
+            CelestialCluster.watchlist[2]= signal.target
+            if CelestialCluster.listener:
+                signal= gsignal.build( {
+                    "type": gsignal.RESET ,
+                    "content": CelestialCluster.watchlist[0] } )
+                CelestialCluster.listener.read_signal(signal)
+        elif signal.type == gsignal.WATCH0:
+            CelestialCluster.watchlist[0]= signal.target
+            if CelestialCluster.listener:
+                signal= gsignal.build( {
+                    "type": gsignal.RESET ,
+                    "content": CelestialCluster.watchlist[0] } )
+                CelestialCluster.listener.read_signal(signal)
+            
+        elif signal.type == gsignal.COLLISION:
+            pass
+            #TODO tratar colisão
+            
+        elif signal.type == gsignal.DELETE:
+            CelestialCluster.remove(signal.content)
+            
+        else:
+            print("possible error at celestialcluster")
+            
+    def set_listener(listener):
+        CelestialCluster.listener= listener
+        if not None in CelestialCluster.watchlist:
+            signal= gsignal.build( {
+                "type": gsignal.RESET ,
+                "content": CelestialCluster.watchlist[0] } )
+            CelestialCluster.listener.read_signal(signal)
         
     def include( celestial_body):
         for cluster_body in CelestialCluster.cluster:
             cluster_body.add_neighbor(celestial_body)
             celestial_body.add_neighbor(cluster_body)
         CelestialCluster.cluster.append(celestial_body)
+        
+    def remove( celestial_body):
+        for cluster_body in CelestialCluster.cluster:
+            if cluster_body != celestial_body:
+                cluster_body.remove_neighbor(celestial_body)
+        CelestialCluster.cluster.remove(celestial_body)
         
 class CelestialBody:
 
@@ -69,6 +151,10 @@ class CelestialBody:
         self.tick= 0
 
         self.lista_dis = []
+        
+    def __str__(self):
+    
+        return self.name
 
     def update(self):
         self.update_speed()
@@ -114,18 +200,24 @@ class CelestialBody:
                     "celestial_bodies": [self, celestial_body] } ) )
             
     def add_neighbor(self, celestial_body):
-        
         self.celestial_neighbor.append(celestial_body)
+        
+    def remove_neighbor(self, celestial_body):
+        self.celestial_neighbor.remove(celestial_body)
         
     def draw(self, display):
         from perspective import Perspective
         
+        size= Perspective.perceived_size(self)
+        if size < 3:
+            size= 3
+        
         #draw pulse
-        if self.tick%64 >= 32:
-            draw.circle(display.CANVAS, self.color.mix(self.color.BLACK, 0.5 + (self.tick%64)/128), Perspective.window(self),  Perspective.perceived_size(self)+int( ((self.tick%64)/2)**0.7 ))
-            draw.circle(display.CANVAS, self.color.mix(self.color.BLACK, 0.5 + ((self.tick+32)%64)/128), Perspective.window(self),  Perspective.perceived_size(self)+int( (((self.tick+32)%64)/2)**0.7 ))
+        if self.tick%128 >= 64:
+            draw.circle(display.CANVAS, self.color.mix(self.color.BLACK, ((self.tick%128))**2/(128**2)), Perspective.window(self),  size+int( ((self.tick%128)/32)))
+            draw.circle(display.CANVAS, self.color.mix(self.color.BLACK, (((self.tick+64)%128))**2/(128**2)), Perspective.window(self),  size+int( (((self.tick+64)%128)/32)))
         else:
-            draw.circle(display.CANVAS, self.color.mix(self.color.BLACK, 0.5 + ((self.tick+32)%64)/128), Perspective.window(self),  Perspective.perceived_size(self)+int( (((self.tick+32)%64)/2)**0.7 ))
-            draw.circle(display.CANVAS, self.color.mix(self.color.BLACK, 0.5 + (self.tick%64)/128), Perspective.window(self),  Perspective.perceived_size(self)+int( ((self.tick%64)/2)**0.7 ))
+            draw.circle(display.CANVAS, self.color.mix(self.color.BLACK, (((self.tick+64)%128)**2)/(128**2)), Perspective.window(self),  size+int( (((self.tick+64)%128)/32)))
+            draw.circle(display.CANVAS, self.color.mix(self.color.BLACK, ((self.tick%128) )**2/(128**2)), Perspective.window(self),  size+int( ((self.tick%128)/32)))
         #draw itself
         draw.circle(display.CANVAS, self.color.get(), Perspective.window(self), Perspective.perceived_size(self))

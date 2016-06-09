@@ -4,7 +4,15 @@ MOVE= 0
 CLICK= 1
 SCROLLUP= 2
 SCROLLDOWN= 3
-COLLISION= 400
+COLLISION= 4
+ACTION= 5
+REINDEX= 6
+LCLICK= 7
+WATCH0= 8
+WATCH1= 9
+WATCH2= 10
+RESET= 11
+DELETE= 12
         
 def build(paramdict):
     for param in paramdict:

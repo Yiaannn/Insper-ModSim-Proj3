@@ -10,10 +10,10 @@ class Gcolor:
     VENUS= (135, 206, 250)
     EARTH= (30, 144, 255)
     MARS= (255, 0, 0)
-    JUPITER= (255, 255, 255)
-    SATURN= (255, 255, 255)
-    URANUS= (255, 255, 255)
-    NEPTUNE= (255, 255, 255)
+    JUPITER= (214, 164, 13)
+    SATURN= (138, 161, 10)
+    URANUS= (14, 48, 201)
+    NEPTUNE= (14, 161, 201)
     
     def sanitize(color):
         if isinstance(color, Gcolor):

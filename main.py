@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import random
 from gcolor import Gcolor
 import gtime
@@ -7,11 +5,10 @@ from perspective import Perspective
 from cardinal import Cardinal
 from celestial_cluster import CelestialCluster
 from syscomm import SysComm
-from display import Display
+
 import os
 import math
-import graficos
-import gtime
+from graficos import grafico
 
 '''
 equaçoes de colisão(2D):
@@ -52,18 +49,18 @@ def distancia(orbi_a,orbi_b):
     
 def distancia_2_planetas(cluster,orbi_1,orbi_2):
     try:
-        for planet in CelestialCluster.cluster:
-            if planet == orbi_1:
+        for planet in cluster:
+            if planet.color == orbi_1:
                 planeta_1 = planet
 #                print(planeta_1)
                 
-            if planet == orbi_2:
+            if planet.color == orbi_2:
                 planeta_2 = planet
 #                print(planeta_2)
                 
         return distancia(planeta_1,planeta_2)
     except:
-        print('erro')
+        print('planeta não encontrado')
 
 class StarDome():
 
@@ -90,17 +87,13 @@ def summon_asteroid():
     RADIUS= None
     #asteroid= OrbitalBody(position, speed, mass, RADIUS)
     
-#dome= StarDome()
 CelestialCluster.init()
-Perspective.lock_on(CelestialCluster.cluster[0])
 
 distancia_corpos = []
-lista_ticks = []
 
+from display import Display
 os.environ['SDL_VIDEO_WINDOW_POS'] = "0, 0"
 #--MAIN LOOP--
-
-
 
 while not SysComm.quit:
     current_time= gtime.current()
@@ -110,6 +103,7 @@ while not SysComm.quit:
     
     #update things
     CelestialCluster.update()
+    Perspective.update()
 
     #draw things
     Display.update()
@@ -121,9 +115,4 @@ while not SysComm.quit:
     
     #print(distancia_corpos)
     #grafico(ticks,distancia_corpos,gtime.RESOLUTION)
-    distancia_corpos.append(distancia_2_planetas(CelestialCluster.cluster,CelestialCluster.cluster[3],CelestialCluster.cluster[0]))
-    lista_ticks.append(gtime.tick)
-
-    
-print (len(lista_ticks),len(distancia_corpos))
-graficos.grafico_pyplot(lista_ticks,distancia_corpos)
+    #distancia_corpos.append(distancia_2_planetas(celestial_cluster.cluster,color.EARTH,color.SUN))
